@@ -51,7 +51,7 @@ model = keras.Sequential([keras.layers.Flatten(),
 #               loss=tf.keras.losses.SparseCategoricalCrossentropy(),
 #               metrics=tf.keras.metrics.Accuracy())
 
-
+#testing
 model.compile(optimizer=tf.keras.optimizers.Adam(),
               loss=tf.keras.losses.SparseCategoricalCrossentropy(),
               metrics=['accuracy'])
