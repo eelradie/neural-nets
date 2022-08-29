@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import tensorflow as tf
 import tensorflow_datasets as tfds
+from numba import jit, cuda
 
 print(tfds.list_builders())
 tfds.disable_progress_bar()
@@ -38,24 +39,26 @@ test_images = test_images.astype('float32')
 train_images /= 255
 test_images /= 255
 
-print(train_labels)
-
 ###### train the model #####
 
-model = keras.Sequential([keras.layers.Flatten(),
-                          keras.layers.Dense(512, activation=tf.keras.activations.relu),
-                          keras.layers.Dense(256, activation=tf.keras.activations.relu),
-                          keras.layers.Dense(3, activation=tf.keras.activations.softmax)])
+# model = keras.Sequential([keras.layers.Flatten(),
+#                           keras.layers.Dense(512, activation=tf.keras.activations.relu),
+#                           keras.layers.Dense(256, activation=tf.keras.activations.relu),
+#                           keras.layers.Dense(3, activation=tf.keras.activations.softmax)])
 
-# model.compile(optimizer=tf.keras.optimizers.Adam(),
-#               loss=tf.keras.losses.SparseCategoricalCrossentropy(),
-#               metrics=tf.keras.metrics.Accuracy())
+# Since we are training the model for an image, its better to use the Conv2D
+model = keras.Sequential(
+    [keras.layers.Conv2D(filters=62, kernel_size=3, activation=tf.keras.activations.relu, input_shape=(300, 300, 1)),
+     keras.layers.Conv2D(filters=32, kernel_size=3, activation=tf.keras.activations.relu),
+     keras.layers.Flatten(),
+     keras.layers.Dense(3, activation=tf.keras.activations.softmax)
 
-#testing
+     ])
+
 model.compile(optimizer=tf.keras.optimizers.Adam(),
               loss=tf.keras.losses.SparseCategoricalCrossentropy(),
               metrics=['accuracy'])
-model.fit(train_images, train_labels, epochs=5, batch_size=32)
+model.fit(train_images, train_labels, epochs=5, batch_size=32, use_multiprocessing = True)
 
 print("Evaluation")
 model.evaluate(test_images, test_labels)
